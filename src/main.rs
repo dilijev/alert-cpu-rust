@@ -3,7 +3,7 @@ use std::io::BufReader;
 use std::time::Duration;
 use std::thread::sleep;
 
-use sysinfo::{System};
+use sysinfo::{System, SystemExt, CpuExt, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
 
     loop {
         // Refresh CPU data
-        sys.refresh_cpu_specifics();
+        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
 
         // Get the average CPU usage across all cores
         let cpu_usage = sys.global_cpu_usage();
@@ -78,7 +78,7 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
 /// Waits until the CPU usage rises above the specified threshold.
 fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
     loop {
-        sys.refresh_cpu_specifics();
+        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
         let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
             println!("CPU usage has risen above the threshold.");
