@@ -30,10 +30,10 @@ fn main() {
 
     loop {
         // Refresh CPU data
-        sys.refresh_cpu();
+        sys.refresh_cpu_specifics();
 
         // Get the average CPU usage across all cores
-        let cpu_usage = sys.global_cpu_info().cpu_usage();
+        let cpu_usage = sys.global_cpu_usage();
 
         println!("Current CPU Usage: {:.2}%", cpu_usage);
 
@@ -78,8 +78,8 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
 /// Waits until the CPU usage rises above the specified threshold.
 fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
     loop {
-        sys.refresh_cpu();
-        let cpu_usage = sys.global_cpu_info().cpu_usage();
+        sys.refresh_cpu_specifics();
+        let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
             println!("CPU usage has risen above the threshold.");
             break;
