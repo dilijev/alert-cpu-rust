@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-sysinfo = "^0.33"
-rodio = "^0.20"
+rodio = "0.20.1"
+sysinfo = "0.33.1"
