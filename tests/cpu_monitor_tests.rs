@@ -1,4 +1,4 @@
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings};
 
 struct MockCpuMonitor {
     usage_pattern: Vec<f32>,
@@ -41,7 +41,12 @@ fn test_evolve_cpu_state_basics() {
         CpuMonitorState::OverThreshold,
     ];
 
-    let threshold = 20.0;
+    let settings = Settings {
+        threshold: 20.0,
+        debounce_count: 2,
+        alert_repeat_count: 5,
+    };
+
     let mut args = CpuMonitorArgs {
         above_threshold_count: 0,
         below_threshold_count: 0,
@@ -56,7 +61,7 @@ fn test_evolve_cpu_state_basics() {
             evolve_cpu_state(
                 &mut mock_monitor,
                 state,
-                threshold,
+                &settings,
                 &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
@@ -86,7 +91,12 @@ fn test_evolve_cpu_state_longer_stay() {
         CpuMonitorState::OverThreshold,
     ];
 
-    let threshold = 20.0;
+    let settings = Settings {
+        threshold: 20.0,
+        debounce_count: 2,
+        alert_repeat_count: 5,
+    };
+
     let mut args = CpuMonitorArgs {
         above_threshold_count: 0,
         below_threshold_count: 0,
@@ -101,7 +111,7 @@ fn test_evolve_cpu_state_longer_stay() {
             evolve_cpu_state(
                 &mut mock_monitor,
                 state,
-                threshold,
+                &settings,
                 &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
@@ -129,7 +139,12 @@ fn test_alerts_played_for_5_intervals() {
         CpuMonitorState::RisingEdge,
     ];
 
-    let threshold = 20.0;
+    let settings = Settings {
+        threshold: 20.0,
+        debounce_count: 2,
+        alert_repeat_count: 5,
+    };
+
     let mut args = CpuMonitorArgs {
         above_threshold_count: 0,
         below_threshold_count: 0,
@@ -144,7 +159,7 @@ fn test_alerts_played_for_5_intervals() {
             evolve_cpu_state(
                 &mut mock_monitor,
                 state,
-                threshold,
+                &settings,
                 &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2}){}",

@@ -8,7 +8,7 @@ use chrono;
 use sysinfo::System;
 use rodio::{Decoder, OutputStream, Sink};
 
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -46,15 +46,21 @@ fn main() {
         }
     };
 
-    monitor_cpu(&mut sys, threshold, interval, &alert_sound_path, &stream_handle)
+    let settings = Settings {
+        threshold,
+        debounce_count: 2,
+        alert_repeat_count: 5,
+    };
+
+    monitor_cpu(&mut sys, &settings, interval, &alert_sound_path, &stream_handle)
         .unwrap_or_else(|e| log(&format!("Error playing alert sound: {}", e)));
 }
 
-fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
+fn monitor_cpu<T: CpuMonitor>(sys: &mut T, settings: &Settings, interval: f64, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
     log(&format!("Playing alert sound once on startup."));
     play_sound(alert_sound_path, stream_handle)?;
 
-    log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
+    log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", settings.threshold));
     log("Press Ctrl+C to exit.");
 
     let mut state = CpuMonitorState::Initial;
@@ -73,7 +79,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
             evolve_cpu_state(
                 sys,
                 state,
-                threshold,
+                settings,
                 &mut args);
         state = next_state;
 
@@ -84,7 +90,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
         println!("Play Alert: {:?}", play_alert);
         println!("CPU Usage: {:?}", cpu_usage);
         println!("Display Log: {:?}", display_log);
-        log_as_per_threshold(cpu_usage, threshold);
+        log_as_per_threshold(cpu_usage, settings.threshold);
         println!();
     }
 }
