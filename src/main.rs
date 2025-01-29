@@ -49,9 +49,20 @@ fn main() {
 
             log("CPU usage below threshold! Playing alert sound.");
 
-            // Play the alert sound
-            if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
-                log(&format!("Error playing sound: {}", e));
+            // Play the alert sound up to 5 times, interrupt if CPU goes above threshold
+            for _ in 0..5 {
+                if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
+                    log(&format!("Error playing sound: {}", e));
+                }
+                sleep(Duration::from_secs(1));
+
+                // Refresh CPU data and check if it goes above the threshold
+                sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+                let cpu_usage = sys.global_cpu_usage();
+                if cpu_usage >= threshold {
+                    log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
+                    break;
+                }
             }
 
             // Optional: Wait until CPU usage rises above the threshold to avoid repeated alerts
