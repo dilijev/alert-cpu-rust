@@ -48,6 +48,13 @@ fn main() {
         .unwrap_or("alert.wav");
     log(&format!("Alert sound path: \"{}\"", alert_sound_path));
 
+    // Get the interval time from the command line arguments
+    // or use the default value of 1 second.
+    let interval: f64 = args.get(3)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(1.0);
+    log(&format!("Interval: {} seconds", interval));
+
     // Initialize the system information struct
     let mut sys = System::new_all();
 
@@ -60,11 +67,11 @@ fn main() {
         }
     };
 
-    monitor_cpu(&mut sys, threshold, &alert_sound_path, &stream_handle)
+    monitor_cpu(&mut sys, threshold, interval, &alert_sound_path, &stream_handle)
         .unwrap_or_else(|e| log(&format!("Error playing alert sound: {}", e)));
 }
 
-fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
+fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
     log(&format!("Playing alert sound once on startup."));
     play_sound(alert_sound_path, stream_handle)?;
 
@@ -75,7 +82,11 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &st
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
 
+    // Each iteration of the loop should be 1 interval.
     loop {
+        // Sleep for 1 interval before doing anything.
+        sleep(Duration::from_secs_f64(interval));
+
         // Refresh CPU data
         sys.refresh_cpu();
 
@@ -147,9 +158,6 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &st
                 }
             }
         };
-
-        // Wait for a specified interval before checking again (e.g., 1 second)
-        sleep(Duration::from_secs(1));
     }
 }
 
