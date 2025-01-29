@@ -46,7 +46,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
     args: &mut CpuMonitorArgs,
 ) -> CpuMonitorOutput {
     let cpu_usage = sys.get_cpu_usage();
-    let mut next_state = current_state;
+    let next_state;
     let mut play_alert = false;
     let mut display_log = false;
 
