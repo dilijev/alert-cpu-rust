@@ -129,7 +129,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &st
                     // Refresh CPU data and check if it goes above the threshold
                     sys.refresh_cpu();
                     let cpu_usage = sys.global_cpu_usage();
-                    if (cpu_usage >= threshold) {
+                    if cpu_usage >= threshold {
                         log_above_threshold(cpu_usage);
                         return;
                     } else {
