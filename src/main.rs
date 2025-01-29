@@ -105,7 +105,6 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
 
 /// Logs a message with the current datetime in ISO-8601 format.
 fn log(message: &str) {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    let datetime = chrono::NaiveDateTime::from_timestamp(now.as_secs() as i64, now.subsec_nanos());
-    println!("[{}] {}", datetime.format("%Y-%m-%d %H:%M:%S"), message);
+    let dtnow = chrono::Local::now();
+    println!("[{}] {}", dtnow.format("%Y-%m-%d %H:%M:%S"), message);
 }
