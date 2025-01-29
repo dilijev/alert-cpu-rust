@@ -48,7 +48,7 @@ fn main() {
         let cpu_usage = sys.global_cpu_usage();
 
         if cpu_usage < threshold {
-            log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
+            log_below_threshold(cpu_usage);
 
             log("CPU usage below threshold! Playing alert sound.");
 
@@ -63,17 +63,17 @@ fn main() {
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 let cpu_usage = sys.global_cpu_usage();
                 if cpu_usage >= threshold {
-                    log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
+                    log_above_threshold(cpu_usage);
                     break;
                 } else {
-                    log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
+                    log_below_threshold(cpu_usage);
                 }
             }
 
             // Optional: Wait until CPU usage rises above the threshold to avoid repeated alerts
             wait_until_above_threshold(&mut sys, threshold);
         } else {
-            log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
+            log_above_threshold(cpu_usage);
         }
 
         // Wait for a specified interval before checking again (e.g., 1 second)
@@ -112,7 +112,7 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
         let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
             above_threshold_count += 1;
-            log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
+            log_above_threshold(cpu_usage);
             if above_threshold_count >= 2 {
                 // No need to reset `above_threshold_count` because we will
                 // return before reading that value again.
@@ -121,7 +121,7 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
             }
         } else {
             above_threshold_count = 0;
-            log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
+            log_below_threshold(cpu_usage);
         }
     }
 }
@@ -130,4 +130,12 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
 fn log(message: &str) {
     let dtnow = chrono::Local::now();
     println!("[{}] {}", dtnow.format("%Y-%m-%d %H:%M:%S"), message);
+}
+
+fn log_above_threshold(cpu_usage: f32) {
+    log(&format!("Current CPU Usage: {}% (above threshold)", cpu_usage));
+}
+
+fn log_below_threshold(cpu_usage: f32) {
+    log(&format!("Current CPU Usage: {}%", cpu_usage));
 }
