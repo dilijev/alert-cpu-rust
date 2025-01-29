@@ -45,7 +45,7 @@ fn main() {
         let cpu_usage = sys.global_cpu_usage();
 
         if cpu_usage < threshold {
-            log(&format!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage));
+            log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
 
             log("CPU usage below threshold! Playing alert sound.");
 
@@ -62,6 +62,8 @@ fn main() {
                 if cpu_usage >= threshold {
                     log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
                     break;
+                } else {
+                    log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
                 }
             }
 
@@ -116,7 +118,7 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
             }
         } else {
             above_threshold_count = 0;
-            log(&format!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage));
+            log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
         }
     }
 }
