@@ -9,14 +9,17 @@ use sysinfo::{System, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
 fn main() {
-    // Get the CPU usage threshold from command line arguments or use default (20%)
     let args: Vec<String> = env::args().collect();
+
+    // Get the CPU usage threshold from the command line arguments
+    // or use the default value (20% CPU).
     let threshold: f32 = args.get(1)
         .and_then(|s| s.parse().ok())
         .unwrap_or(20.0);
     log(&format!("CPU Threshold: {}%", threshold));
 
-    // Path to the alert sound file
+    // Get the path to the alert sound file from the command line arguments
+    // or use the default value ("alert.wav").
     let alert_sound_path: &str = args.get(2)
         .and_then(|s| Some(s.as_str()))
         .unwrap_or("alert.wav");
