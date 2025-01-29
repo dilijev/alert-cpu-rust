@@ -74,6 +74,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
       }
       CpuState::BelowThreshold => {
           if cpu_usage > threshold {
+              *above_threshold_count += 1;
               next_state = CpuState::RisingEdge;
               display_log = true;
           }
