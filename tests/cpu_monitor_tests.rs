@@ -1,4 +1,4 @@
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs};
 
 struct MockCpuMonitor {
     usage_pattern: Vec<f32>,
@@ -42,9 +42,11 @@ fn test_evolve_cpu_state_basics() {
     ];
 
     let threshold = 20.0;
-    let mut above_threshold_count = 0;
-    let mut below_threshold_count = 0;
-    let mut alert_repeat_count = 0;
+    let mut args = CpuMonitorArgs {
+        above_threshold_count: 0,
+        below_threshold_count: 0,
+        alert_repeat_count: 0,
+    };
 
     let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
@@ -55,11 +57,9 @@ fn test_evolve_cpu_state_basics() {
                 &mut mock_monitor,
                 state,
                 threshold,
-                &mut above_threshold_count,
-                &mut below_threshold_count,
-                &mut alert_repeat_count);
+                &mut args);
 
-        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, above_threshold_count, below_threshold_count, alert_repeat_count);
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
@@ -87,9 +87,11 @@ fn test_evolve_cpu_state_longer_stay() {
     ];
 
     let threshold = 20.0;
-    let mut above_threshold_count = 0;
-    let mut below_threshold_count = 0;
-    let mut alert_repeat_count = 0;
+    let mut args = CpuMonitorArgs {
+        above_threshold_count: 0,
+        below_threshold_count: 0,
+        alert_repeat_count: 0,
+    };
 
     let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
@@ -100,11 +102,9 @@ fn test_evolve_cpu_state_longer_stay() {
                 &mut mock_monitor,
                 state,
                 threshold,
-                &mut above_threshold_count,
-                &mut below_threshold_count,
-                &mut alert_repeat_count);
+                &mut args);
 
-        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, above_threshold_count, below_threshold_count, alert_repeat_count);
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
@@ -130,9 +130,11 @@ fn test_alerts_played_for_5_intervals() {
     ];
 
     let threshold = 20.0;
-    let mut above_threshold_count = 0;
-    let mut below_threshold_count = 0;
-    let mut alert_repeat_count = 0;
+    let mut args = CpuMonitorArgs {
+        above_threshold_count: 0,
+        below_threshold_count: 0,
+        alert_repeat_count: 0,
+    };
 
     let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
@@ -143,17 +145,15 @@ fn test_alerts_played_for_5_intervals() {
                 &mut mock_monitor,
                 state,
                 threshold,
-                &mut above_threshold_count,
-                &mut below_threshold_count,
-                &mut alert_repeat_count);
+                &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2}){}",
             state,
             cpu_usage,
             next_state,
-            above_threshold_count,
-            below_threshold_count,
-            alert_repeat_count,
+            args.above_threshold_count,
+            args.below_threshold_count,
+            args.alert_repeat_count,
             if play_alert {" !!!"} else {""});
 
         state = next_state;
@@ -165,5 +165,5 @@ fn test_alerts_played_for_5_intervals() {
     }
 
     // Ensure that alerts are played for 5 intervals
-    assert_eq!(alert_repeat_count, 5);
+    assert_eq!(args.alert_repeat_count, 5);
 }

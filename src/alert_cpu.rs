@@ -23,13 +23,17 @@ impl CpuMonitor for System {
 const DEBOUNCE_COUNT: i32 = 2;
 const ALERT_REPEAT_COUNT: i32 = 5;
 
+pub struct CpuMonitorArgs {
+    pub above_threshold_count: i32,
+    pub below_threshold_count: i32,
+    pub alert_repeat_count: i32,
+}
+
 pub fn evolve_cpu_state<T: CpuMonitor>(
     sys: &mut T,
     current_state: CpuMonitorState,
     threshold: f32,
-    above_threshold_count: &mut i32,
-    below_threshold_count: &mut i32,
-    alert_repeat_count: &mut i32,
+    args: &mut CpuMonitorArgs,
 ) -> (CpuMonitorState, bool, f32, bool) {
     let cpu_usage = sys.get_cpu_usage();
     let next_state;
@@ -39,21 +43,21 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
     // Make these updates regardless of current state
     if cpu_usage > threshold {
         // above
-        *below_threshold_count = 0;
-        *above_threshold_count += 1;
+        args.below_threshold_count = 0;
+        args.above_threshold_count += 1;
     } else {
         // below
-        if *below_threshold_count == 0 {
-            *alert_repeat_count = 0;
+        if args.below_threshold_count == 0 {
+            args.alert_repeat_count = 0;
         }
-        *above_threshold_count = 0;
-        *below_threshold_count += 1;
+        args.above_threshold_count = 0;
+        args.below_threshold_count += 1;
     }
 
     match current_state {
         CpuMonitorState::Initial => {
             if cpu_usage > threshold {
-                if *above_threshold_count >= DEBOUNCE_COUNT {
+                if args.above_threshold_count >= DEBOUNCE_COUNT {
                     next_state = CpuMonitorState::OverThreshold;
                 } else {
                     next_state = CpuMonitorState::RisingEdge;
@@ -65,7 +69,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
         }
         CpuMonitorState::RisingEdge => {
             if cpu_usage > threshold {
-                if *above_threshold_count >= DEBOUNCE_COUNT {
+                if args.above_threshold_count >= DEBOUNCE_COUNT {
                     next_state = CpuMonitorState::OverThreshold;
                 } else {
                     next_state = CpuMonitorState::RisingEdge;
@@ -77,7 +81,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
         }
         CpuMonitorState::OverThreshold => {
             if cpu_usage <= threshold {
-                if *below_threshold_count >= DEBOUNCE_COUNT {
+                if args.below_threshold_count >= DEBOUNCE_COUNT {
                     next_state = CpuMonitorState::BelowThreshold;
                 } else {
                     next_state = CpuMonitorState::FallingEdge;
@@ -88,7 +92,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
         }
         CpuMonitorState::FallingEdge => {
             if cpu_usage <= threshold {
-                if *below_threshold_count >= DEBOUNCE_COUNT {
+                if args.below_threshold_count >= DEBOUNCE_COUNT {
                     next_state = CpuMonitorState::BelowThreshold;
                 } else {
                     next_state = CpuMonitorState::FallingEdge;
@@ -99,7 +103,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
         }
         CpuMonitorState::BelowThreshold => {
             if cpu_usage > threshold {
-                if *above_threshold_count >= DEBOUNCE_COUNT {
+                if args.above_threshold_count >= DEBOUNCE_COUNT {
                     next_state = CpuMonitorState::OverThreshold;
                 } else {
                     next_state = CpuMonitorState::RisingEdge;
@@ -108,10 +112,10 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
                 next_state = CpuMonitorState::BelowThreshold;
 
                 // Play alerts if applicable.
-                if *alert_repeat_count < ALERT_REPEAT_COUNT {
+                if args.alert_repeat_count < ALERT_REPEAT_COUNT {
                     play_alert = true;
                 }
-                *alert_repeat_count += 1;
+                args.alert_repeat_count += 1;
             }
         }
     }
