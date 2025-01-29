@@ -16,10 +16,11 @@ impl MockCpuMonitor {
 
 impl CpuMonitor for MockCpuMonitor {
     fn get_cpu_usage(&mut self) -> f32 {
+        let cpu_usage_value = self.usage_pattern[self.index];
         if self.index < self.usage_pattern.len() - 1 {
             self.index += 1;
         }
-        self.usage_pattern[self.index]
+        cpu_usage_value
     }
 }
 
@@ -47,7 +48,7 @@ fn test_evolve_cpu_state() {
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
-        let (next_state, _play_alert, _cpu_usage, _display_log) =
+        let (next_state, _play_alert, cpu_usage, _display_log) =
             evolve_cpu_state(
                 &mut mock_monitor,
                 state,
@@ -55,7 +56,7 @@ fn test_evolve_cpu_state() {
                 &mut above_threshold_count,
                 &mut below_threshold_count);
 
-        println!("State: {:?}, Next State: {:?}", state, next_state);
+        println!("{:?} \t -> {:2} -> \t {:?}", state, cpu_usage, next_state);
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
