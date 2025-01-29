@@ -62,7 +62,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
       CpuState::FallingEdge => {
           if cpu_usage <= threshold {
               *below_threshold_count += 1;
-              if *below_threshold_count >= 2 {
+              if *below_threshold_count >= 1 {
                   next_state = CpuState::BelowThreshold;
                   play_alert = true;
               }
