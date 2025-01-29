@@ -60,13 +60,16 @@ fn main() {
         }
     };
 
+    monitor_cpu(&mut sys, threshold, &alert_sound_path, &stream_handle)
+        .unwrap_or_else(|e| log(&format!("Error playing alert sound: {}", e)));
+}
+
+fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
+    play_sound(alert_sound_path, stream_handle)?;
+
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
     log("Press Ctrl+C to exit.");
 
-    monitor_cpu(&mut sys, threshold, &alert_sound_path, &stream_handle);
-}
-
-fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) {
     let mut state = CpuState::Initial;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
@@ -121,9 +124,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &st
 
                 // Play the alert sound up to 5 times, interrupt if CPU goes above threshold
                 for _ in 0..5 {
-                    if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
-                        log(&format!("Error playing sound: {}", e));
-                    }
+                    play_sound(alert_sound_path, stream_handle)?;
                     sleep(Duration::from_secs(1));
 
                     // Refresh CPU data and check if it goes above the threshold
@@ -131,7 +132,6 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &st
                     let cpu_usage = sys.global_cpu_usage();
                     if cpu_usage >= threshold {
                         log_above_threshold(cpu_usage);
-                        return;
                     } else {
                         log_below_threshold(cpu_usage);
                     }
