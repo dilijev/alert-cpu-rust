@@ -1,4 +1,4 @@
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuState};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState};
 
 struct MockCpuMonitor {
     usage_pattern: Vec<f32>,
@@ -31,14 +31,14 @@ fn test_evolve_cpu_state_basics() {
     let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
 
     let state_pattern = vec![
-        CpuState::BelowThreshold,
-        CpuState::RisingEdge,
-        CpuState::OverThreshold,
-        CpuState::FallingEdge,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::RisingEdge,
-        CpuState::OverThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::FallingEdge,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
     ];
 
     let threshold = 20.0;
@@ -46,7 +46,7 @@ fn test_evolve_cpu_state_basics() {
     let mut below_threshold_count = 0;
     let mut alert_repeat_count = 0;
 
-    let mut state = CpuState::Initial;
+    let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
@@ -73,17 +73,17 @@ fn test_evolve_cpu_state_longer_stay() {
     let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
 
     let state_pattern = vec![
-        CpuState::BelowThreshold,
-        CpuState::RisingEdge,
-        CpuState::OverThreshold,
-        CpuState::OverThreshold,
-        CpuState::FallingEdge,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::RisingEdge,
-        CpuState::OverThreshold,
-        CpuState::OverThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::FallingEdge,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::OverThreshold,
     ];
 
     let threshold = 20.0;
@@ -91,7 +91,7 @@ fn test_evolve_cpu_state_longer_stay() {
     let mut below_threshold_count = 0;
     let mut alert_repeat_count = 0;
 
-    let mut state = CpuState::Initial;
+    let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
@@ -118,15 +118,15 @@ fn test_alerts_played_for_5_intervals() {
     let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
 
     let state_pattern = vec![
-        CpuState::RisingEdge,
-        CpuState::OverThreshold,
-        CpuState::FallingEdge,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::BelowThreshold,
-        CpuState::RisingEdge,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::FallingEdge,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
     ];
 
     let threshold = 20.0;
@@ -134,7 +134,7 @@ fn test_alerts_played_for_5_intervals() {
     let mut below_threshold_count = 0;
     let mut alert_repeat_count = 0;
 
-    let mut state = CpuState::Initial;
+    let mut state = CpuMonitorState::Initial;
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
@@ -159,7 +159,7 @@ fn test_alerts_played_for_5_intervals() {
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
 
-        if state == CpuState::BelowThreshold {
+        if state == CpuMonitorState::BelowThreshold {
             assert!(play_alert);
         }
     }

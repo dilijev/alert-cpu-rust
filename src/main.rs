@@ -8,7 +8,7 @@ use chrono;
 use sysinfo::System;
 use rodio::{Decoder, OutputStream, Sink};
 
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuState};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -57,7 +57,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
     log("Press Ctrl+C to exit.");
 
-    let mut state = CpuState::Initial;
+    let mut state = CpuMonitorState::Initial;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
     let mut alert_repeat_count = 0;
