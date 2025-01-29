@@ -17,16 +17,12 @@ enum CpuState {
 }
 
 trait CpuMonitor {
-    fn refresh_cpu(&mut self);
-    fn global_cpu_usage(&self) -> f32;
+    fn get_cpu_usage(&mut self) -> f32;
 }
 
 impl CpuMonitor for System {
-    fn refresh_cpu(&mut self) {
+    fn get_cpu_usage(&mut self) -> f32 {
         self.refresh_cpu_specifics(CpuRefreshKind::everything());
-    }
-
-    fn global_cpu_usage(&self) -> f32 {
         self.global_cpu_usage()
     }
 }
@@ -87,11 +83,8 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
         // Sleep for 1 interval before doing anything.
         sleep(Duration::from_secs_f64(interval));
 
-        // Refresh CPU data
-        sys.refresh_cpu();
-
         // Get the average CPU usage across all cores
-        let cpu_usage = sys.global_cpu_usage();
+        let cpu_usage = sys.get_cpu_usage();
 
         state = match state {
             CpuState::Initial => {
@@ -140,8 +133,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
                     sleep(Duration::from_secs(1));
 
                     // Refresh CPU data and check if it goes above the threshold
-                    sys.refresh_cpu();
-                    let cpu_usage = sys.global_cpu_usage();
+                    let cpu_usage = sys.get_cpu_usage();
                     if cpu_usage >= threshold {
                         log_above_threshold(cpu_usage);
                     } else {
