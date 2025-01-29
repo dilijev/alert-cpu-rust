@@ -114,12 +114,12 @@ fn test_evolve_cpu_state_longer_stay() {
 /// Test that alerts are played for 5 intervals after transitioning to BelowThreshold.
 #[test]
 fn test_alerts_played_for_5_intervals() {
-    let usage_pattern = vec![25.0, 15.0, 10.0, 5.0, 5.0, 5.0, 5.0, 5.0, 25.0];
+    let usage_pattern = vec![25.0, 25.0, 15.0, 10.0, 5.0, 5.0, 5.0, 5.0, 25.0];
     let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
 
     let state_pattern = vec![
         CpuState::RisingEdge,
-        CpuState::FallingEdge,
+        CpuState::OverThreshold,
         CpuState::FallingEdge,
         CpuState::BelowThreshold,
         CpuState::BelowThreshold,
@@ -147,7 +147,14 @@ fn test_alerts_played_for_5_intervals() {
                 &mut below_threshold_count,
                 &mut alert_repeat_count);
 
-        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, above_threshold_count, below_threshold_count, alert_repeat_count);
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2}){}",
+            state,
+            cpu_usage,
+            next_state,
+            above_threshold_count,
+            below_threshold_count,
+            alert_repeat_count,
+            if play_alert {" !!!"} else {""});
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
