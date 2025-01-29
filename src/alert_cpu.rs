@@ -108,7 +108,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
                 next_state = CpuState::BelowThreshold;
 
                 // Play alerts if applicable.
-                if (*alert_repeat_count) < ALERT_REPEAT_COUNT {
+                if *alert_repeat_count < ALERT_REPEAT_COUNT {
                     play_alert = true;
                 }
                 *alert_repeat_count += 1;
