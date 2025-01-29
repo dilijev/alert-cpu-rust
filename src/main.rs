@@ -88,16 +88,21 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
 
 /// Waits until the CPU usage rises above the specified threshold.
 fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
+    let mut above_threshold_count = 0;
     loop {
         // Delay longer when below threshold to smooth out system activity.
         sleep(Duration::from_secs(10));
         sys.refresh_cpu_specifics(CpuRefreshKind::everything());
         let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
+            above_threshold_count += 1;
             log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
-            log("CPU usage has risen above the threshold.");
-            break;
+            if above_threshold_count >= 2 {
+                log("CPU usage has risen above the threshold.");
+                break;
+            }
         } else {
+            above_threshold_count = 0;
             log(&format!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage));
         }
     }
