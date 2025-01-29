@@ -8,7 +8,7 @@ use chrono;
 use sysinfo::{System, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum CpuState {
     Initial,
     RisingEdge,
@@ -84,73 +84,24 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
         // Sleep for 1 interval before doing anything.
         sleep(Duration::from_secs_f64(interval));
 
-        // Get the average CPU usage across all cores
-        let cpu_usage = sys.get_cpu_usage();
+        let (next_state, play_alert, cpu_usage, display_log) =
+            evolve_cpu_state(
+                sys,
+                state,
+                threshold,
+                &mut above_threshold_count,
+                &mut below_threshold_count);
+        state = next_state;
 
-        state = match state {
-            CpuState::Initial => {
-                log_as_per_threshold(cpu_usage, threshold);
-                if cpu_usage >= threshold {
-                    CpuState::RisingEdge
-                } else {
-                    CpuState::Initial
-                }
-            }
-            CpuState::RisingEdge => {
-                if cpu_usage >= threshold {
-                    above_threshold_count += 1;
-                    if above_threshold_count >= 1 {
-                        log("CPU usage has risen above the threshold.");
-                        CpuState::OverThreshold
-                    } else {
-                        CpuState::RisingEdge
-                    }
-                } else {
-                    above_threshold_count = 0;
-                    CpuState::Initial
-                }
-            }
-            CpuState::OverThreshold => {
-                if cpu_usage < threshold {
-                    below_threshold_count += 1;
-                    if below_threshold_count >= 2 {
-                        log("CPU usage has fallen below the threshold.");
-                        CpuState::FallingEdge
-                    } else {
-                        CpuState::OverThreshold
-                    }
-                } else {
-                    below_threshold_count = 0;
-                    CpuState::OverThreshold
-                }
-            }
-            CpuState::FallingEdge => {
-                log_below_threshold(cpu_usage);
-                log("CPU usage below threshold! Playing alert sound.");
-
-                // Play the alert sound up to 5 times, interrupt if CPU goes above threshold
-                for _ in 0..5 {
-                    play_sound(alert_sound_path, stream_handle)?;
-                    sleep(Duration::from_secs(1));
-
-                    // Refresh CPU data and check if it goes above the threshold
-                    let cpu_usage = sys.get_cpu_usage();
-                    if cpu_usage >= threshold {
-                        log_above_threshold(cpu_usage);
-                    } else {
-                        log_below_threshold(cpu_usage);
-                    }
-                }
-                CpuState::BelowThreshold
-            }
-            CpuState::BelowThreshold => {
-                if cpu_usage >= threshold {
-                    CpuState::RisingEdge
-                } else {
-                    CpuState::BelowThreshold
-                }
-            }
-        };
+        // Debug the state evolution
+        println!("State: {:?}", state);
+        println!("Above Threshold Count: {:?}", above_threshold_count);
+        println!("Below Threshold Count: {:?}", below_threshold_count);
+        println!("Play Alert: {:?}", play_alert);
+        println!("CPU Usage: {:?}", cpu_usage);
+        println!("Display Log: {:?}", display_log);
+        log_as_per_threshold(cpu_usage, threshold);
+        println!();
     }
 }
 
@@ -158,8 +109,8 @@ fn evolve_cpu_state<T: CpuMonitor>(
     sys: &mut T,
     current_state: CpuState,
     threshold: f32,
-    above_threshold_count: &mut i32,
-    below_threshold_count: &mut i32,
+    _above_threshold_count: &mut i32,
+    _below_threshold_count: &mut i32,
 ) -> (CpuState, bool, f32, bool) {
     let cpu_usage = sys.get_cpu_usage();
     let mut next_state = current_state;
