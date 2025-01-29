@@ -34,8 +34,8 @@ pub struct CpuMonitorArgs {
 
 pub struct CpuMonitorOutput {
     pub next_state: CpuMonitorState,
-    pub play_alert: bool,
     pub cpu_usage: f32,
+    pub play_alert: bool,
     pub display_log: bool,
 }
 
@@ -132,8 +132,8 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
 
     CpuMonitorOutput {
         next_state,
-        play_alert,
         cpu_usage,
+        play_alert,
         display_log,
     }
 }

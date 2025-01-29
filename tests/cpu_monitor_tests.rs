@@ -59,8 +59,8 @@ fn test_evolve_cpu_state_basics() {
     for i in 0..mock_monitor.usage_pattern.len() {
         let CpuMonitorOutput {
             next_state,
-            play_alert: _,
             cpu_usage,
+            play_alert: _,
             display_log: _,
         } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
@@ -109,8 +109,8 @@ fn test_evolve_cpu_state_longer_stay() {
     for i in 0..mock_monitor.usage_pattern.len() {
         let CpuMonitorOutput {
             next_state,
-            play_alert: _,
             cpu_usage,
+            play_alert: _,
             display_log: _,
         } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
@@ -157,8 +157,8 @@ fn test_alerts_played_for_5_intervals() {
     for i in 0..mock_monitor.usage_pattern.len() {
         let CpuMonitorOutput {
             next_state,
-            play_alert,
             cpu_usage,
+            play_alert,
             display_log: _,
         } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
@@ -169,7 +169,7 @@ fn test_alerts_played_for_5_intervals() {
             args.above_threshold_count,
             args.below_threshold_count,
             args.alert_repeat_count,
-            if play_alert {" !!!"} else {""});
+            if play_alert {" !!!"} else {" ---"});
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);

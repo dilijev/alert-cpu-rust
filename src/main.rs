@@ -77,8 +77,8 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, settings: &Settings, interval: f64, a
 
         let CpuMonitorOutput {
             next_state,
-            play_alert,
             cpu_usage,
+            play_alert,
             display_log,
         } = evolve_cpu_state(sys, state, settings, &mut args);
         state = next_state;
