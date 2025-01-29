@@ -16,6 +16,21 @@ enum CpuState {
     BelowThreshold,
 }
 
+trait CpuMonitor {
+    fn refresh_cpu(&mut self);
+    fn global_cpu_usage(&self) -> f32;
+}
+
+impl CpuMonitor for System {
+    fn refresh_cpu(&mut self) {
+        self.refresh_cpu_specifics(CpuRefreshKind::everything());
+    }
+
+    fn global_cpu_usage(&self) -> f32 {
+        self.global_cpu_usage()
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -48,13 +63,17 @@ fn main() {
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
     log("Press Ctrl+C to exit.");
 
+    monitor_cpu(&mut sys, threshold, &alert_sound_path, &stream_handle);
+}
+
+fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) {
     let mut state = CpuState::Initial;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
 
     loop {
         // Refresh CPU data
-        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+        sys.refresh_cpu();
 
         // Get the average CPU usage across all cores
         let cpu_usage = sys.global_cpu_usage();
@@ -108,9 +127,9 @@ fn main() {
                     sleep(Duration::from_secs(1));
 
                     // Refresh CPU data and check if it goes above the threshold
-                    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+                    sys.refresh_cpu();
                     let cpu_usage = sys.global_cpu_usage();
-                    if cpu_usage >= threshold {
+                    if (cpu_usage >= threshold) {
                         log_above_threshold(cpu_usage);
                         return;
                     } else {
