@@ -24,8 +24,8 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
   sys: &mut T,
   current_state: CpuState,
   threshold: f32,
-  _above_threshold_count: &mut i32,
-  _below_threshold_count: &mut i32,
+  above_threshold_count: &mut i32,
+  below_threshold_count: &mut i32,
 ) -> (CpuState, bool, f32, bool) {
   let cpu_usage = sys.get_cpu_usage();
   let mut next_state = current_state;
@@ -43,8 +43,12 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
       }
       CpuState::RisingEdge => {
           if cpu_usage > threshold {
-              next_state = CpuState::OverThreshold;
+              *above_threshold_count += 1;
+              if *above_threshold_count >= 1 {
+                  next_state = CpuState::OverThreshold;
+              }
           } else {
+              *above_threshold_count = 0;
               next_state = CpuState::FallingEdge;
           }
           display_log = true;
@@ -57,12 +61,16 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
       }
       CpuState::FallingEdge => {
           if cpu_usage <= threshold {
-              next_state = CpuState::BelowThreshold;
-              play_alert = true;
-              display_log = true;
+              *below_threshold_count += 1;
+              if *below_threshold_count >= 2 {
+                  next_state = CpuState::BelowThreshold;
+                  play_alert = true;
+              }
           } else {
+              *below_threshold_count = 0;
               next_state = CpuState::OverThreshold;
           }
+          display_log = true;
       }
       CpuState::BelowThreshold => {
           if cpu_usage > threshold {
