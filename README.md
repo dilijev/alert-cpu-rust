@@ -7,21 +7,37 @@ audible alert. This application will wait for the CPU to be above a certain
 threshold and then play an alert sound when it drops and stays below that
 threshold, indicating that the long-running operation has completed.
 
-## Build
+## Build and Install
 
 Assuming you have Rust installed and on the path.
+
+### Build
+
+To build the application (debug configuration):
 
 ```sh
 cargo build
 ```
 
-On Windows, the output is located at `.\target\debug\alert-cpu.exe`.
-
-On Unix-like systems, it is located at `./target/debug/alert-cpu`.
+- On Windows, the output is located at `.\target\debug\alert-cpu.exe`.
+- On Unix-like systems, the output is located at `./target/debug/alert-cpu`.
 
 In the example commands below, I will simply use `alert-cpu` for brevity. The
 user will need to use the appropriate path for the executable and alert sound
 file.
+
+### Install
+
+To install the application:
+
+```sh
+cargo install --path .
+```
+
+The `--path .` option tells Cargo to install the application from the current
+directory.
+
+Once installed, you can run the application from anywhere.
 
 ## Usage
 
@@ -50,7 +66,7 @@ alert-cpu 20 alert.wav
 Alternative values:
 
 ```sh
-alert-cpu 30.5 assets\notify.wav
+alert-cpu 30.5 assets/notify.wav
 ```
 
 The first argument is a value between 0 and 100 that represents the CPU
