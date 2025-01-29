@@ -40,6 +40,8 @@ fn main() {
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
     log("Press Ctrl+C to exit.");
 
+    initial_cpu_status_check(&mut sys, threshold);
+
     loop {
         // Refresh CPU data
         sys.refresh_cpu_specifics(CpuRefreshKind::everything());
@@ -102,6 +104,19 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
     Ok(())
 }
 
+/// Initial CPU status check. Don't alert right away.
+fn initial_cpu_status_check(sys: &mut System, threshold: f32) {
+    // Wait for 1 second for CPU to settle before initial check
+    // Then do nothing until the first time we're above the threshold.
+    sleep(Duration::from_secs(1));
+    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+
+    let cpu_usage = sys.global_cpu_usage();
+    log_as_per_threshold(cpu_usage, threshold);
+
+    wait_until_above_threshold(sys, threshold);
+}
+
 /// Waits until the CPU usage rises above the specified threshold.
 fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
     let mut above_threshold_count = 0;
@@ -138,4 +153,16 @@ fn log_above_threshold(cpu_usage: f32) {
 
 fn log_below_threshold(cpu_usage: f32) {
     log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
+}
+
+/// Log the CPU usage as above threshold or not.
+/// Return true if it's above the threshold; false otherwise.
+fn log_as_per_threshold(cpu_usage: f32, threshold: f32) -> bool {
+    if cpu_usage >= threshold {
+        log_above_threshold(cpu_usage);
+        true
+    } else {
+        log_below_threshold(cpu_usage);
+        false
+    }
 }
