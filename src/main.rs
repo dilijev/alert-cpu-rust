@@ -3,7 +3,7 @@ use std::io::BufReader;
 use std::time::Duration;
 use std::thread::sleep;
 
-use sysinfo::{System, SystemExt, CpuExt, CpuRefreshKind};
+use sysinfo::{System, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
 fn main() {
