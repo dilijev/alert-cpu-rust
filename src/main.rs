@@ -60,6 +60,7 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
     let mut state = CpuState::Initial;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
+    let mut alert_repeat_count = 0;
 
     // Each iteration of the loop should be 1 interval.
     loop {
@@ -72,7 +73,8 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, interval: f64, alert_
                 state,
                 threshold,
                 &mut above_threshold_count,
-                &mut below_threshold_count);
+                &mut below_threshold_count,
+                &mut alert_repeat_count);
         state = next_state;
 
         // Debug the state evolution

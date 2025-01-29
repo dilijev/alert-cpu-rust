@@ -44,6 +44,7 @@ fn test_evolve_cpu_state_basics() {
     let threshold = 20.0;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
+    let mut alert_repeat_count = 0;
 
     let mut state = CpuState::Initial;
     println!("State: {:?}", state);
@@ -55,7 +56,8 @@ fn test_evolve_cpu_state_basics() {
                 state,
                 threshold,
                 &mut above_threshold_count,
-                &mut below_threshold_count);
+                &mut below_threshold_count,
+                &mut alert_repeat_count);
 
         println!("{:?} \t -> {:2} -> \t {:?}", state, cpu_usage, next_state);
 
@@ -89,6 +91,7 @@ fn test_evolve_cpu_state_longer_stay() {
     let threshold = 20.0;
     let mut above_threshold_count = 0;
     let mut below_threshold_count = 0;
+    let mut alert_repeat_count = 0;
 
     let mut state = CpuState::Initial;
     println!("State: {:?}", state);
@@ -100,7 +103,8 @@ fn test_evolve_cpu_state_longer_stay() {
                 state,
                 threshold,
                 &mut above_threshold_count,
-                &mut below_threshold_count);
+                &mut below_threshold_count,
+                &mut alert_repeat_count);
 
         println!("{:?} \t -> {:2} -> \t {:?}", state, cpu_usage, next_state);
 
