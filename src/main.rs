@@ -43,9 +43,9 @@ fn main() {
         // Get the average CPU usage across all cores
         let cpu_usage = sys.global_cpu_usage();
 
-        println!("Current CPU Usage: {:.2}%", cpu_usage);
-
         if cpu_usage < threshold {
+            println!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage);
+
             println!("CPU usage below threshold! Playing alert sound.");
 
             // Play the alert sound
@@ -55,6 +55,8 @@ fn main() {
 
             // Optional: Wait until CPU usage rises above the threshold to avoid repeated alerts
             wait_until_above_threshold(&mut sys, threshold);
+        } else {
+            println!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage);
         }
 
         // Wait for a specified interval before checking again (e.g., 1 second)
@@ -86,12 +88,16 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
 /// Waits until the CPU usage rises above the specified threshold.
 fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
     loop {
-        sleep(Duration::from_secs(1));
+        // Delay longer when below threshold to smooth out system activity.
+        sleep(Duration::from_secs(10));
         sys.refresh_cpu_specifics(CpuRefreshKind::everything());
         let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
+            println!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage);
             println!("CPU usage has risen above the threshold.");
             break;
+        } else {
+            println!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage);
         }
     }
 }
