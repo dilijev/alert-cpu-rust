@@ -19,7 +19,7 @@ fn main() {
     let alert_sound_path: &str = args.get(2)
         .and_then(|s| Some(s.as_str()))
         .unwrap_or("alert.wav");
-    println!("Alert sound path: {}%", alert_sound_path);
+    println!("Alert sound path: \"{}\"", alert_sound_path);
 
     // Initialize the system information struct
     let mut sys = System::new_all();
