@@ -1,7 +1,4 @@
-use std::time::Duration;
-use std::thread::sleep;
 use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuState};
-use rodio::{OutputStream, Sink};
 
 struct MockCpuMonitor {
     usage_pattern: Vec<f32>,
