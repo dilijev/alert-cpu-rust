@@ -98,6 +98,8 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
             above_threshold_count += 1;
             log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
             if above_threshold_count >= 2 {
+                // No need to reset `above_threshold_count` because we will
+                // return before reading that value again.
                 log("CPU usage has risen above the threshold.");
                 break;
             }
