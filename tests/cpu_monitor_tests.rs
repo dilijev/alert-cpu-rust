@@ -59,7 +59,7 @@ fn test_evolve_cpu_state_basics() {
                 &mut below_threshold_count,
                 &mut alert_repeat_count);
 
-        println!("{:?} \t -> {:2} -> \t {:?}", state, cpu_usage, next_state);
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, above_threshold_count, below_threshold_count, alert_repeat_count);
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
@@ -106,7 +106,7 @@ fn test_evolve_cpu_state_longer_stay() {
                 &mut below_threshold_count,
                 &mut alert_repeat_count);
 
-        println!("{:?} \t -> {:2} -> \t {:?}", state, cpu_usage, next_state);
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, above_threshold_count, below_threshold_count, alert_repeat_count);
 
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
