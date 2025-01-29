@@ -71,6 +71,69 @@ fn test_evolve_cpu_state_basics() {
     }
 }
 
+/// Streaks must be mutually exclusive. One must be 0 while the other is non-0.
+#[test]
+fn test_mutually_exclusive_streaks() {
+    let usage_pattern = vec![5.0, 25.0, 30.0, 15.0, 10.0, 5.0, 25.0, 30.0];
+    let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
+
+    let _state_pattern = vec![
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+        CpuMonitorState::FallingEdge,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::BelowThreshold,
+        CpuMonitorState::RisingEdge,
+        CpuMonitorState::OverThreshold,
+    ];
+
+    let settings = Settings {
+        threshold: 20.0,
+        debounce_count: 2,
+        alert_repeat_count: 5,
+    };
+
+    let mut args = CpuMonitorArgs {
+        above_threshold_count: 0,
+        below_threshold_count: 0,
+        alert_repeat_count: 0,
+    };
+
+    let mut state = CpuMonitorState::Initial;
+    println!("State: {:?}", state);
+
+    for _i in 0..mock_monitor.usage_pattern.len() {
+        let CpuMonitorOutput {
+            next_state,
+            cpu_usage,
+            play_alert: _,
+            display_log: _,
+        } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
+
+        println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
+
+        // Streaks above or below must be mutually exclusive.
+        // If one is 0 the other is non-zero.
+        // Neither can be 0 at the same time after the first state change.
+        assert!(args.above_threshold_count + args.below_threshold_count != 0);
+        assert!(args.above_threshold_count == 0 || args.below_threshold_count == 0);
+        assert!(args.above_threshold_count > 0 || args.below_threshold_count > 0);
+        assert_ne!(args.above_threshold_count, args.below_threshold_count);
+        if args.above_threshold_count > 0 {
+            assert_eq!(args.below_threshold_count, 0);
+        } else if args.below_threshold_count > 0 {
+            assert_eq!(args.above_threshold_count, 0);
+        } else {
+            // There must be no other options.
+            assert!(false, "Invalid state.");
+        }
+
+        state = next_state;
+    }
+}
+
+
 /// Stay longer in the OverThreshold and BelowThreshold states.
 #[test]
 fn test_evolve_cpu_state_longer_stay() {
