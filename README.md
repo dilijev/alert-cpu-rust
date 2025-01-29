@@ -56,13 +56,15 @@ Alternative values:
 
 The first argument is a value between 0 and 100 that represents the CPU threshold in % total CPU usage. Default is 20%.
 
-The second argument is a path (relative or absolute) to the alert sound file you would like to play (tested with .wav files).
+The second argument is a path (relative or absolute) to the alert sound file you would like to play. `rodio` supports various audio formats including `.wav`, `.mp3`, `.flac`, and `.vorbis`.
 
 A suggestion for an alert sound to play on Windows:
 
 ```sh
 C:\Windows\Media\Windows Notify.wav
 ```
+
+On Unix-like systems, system sounds are typically in `.ogg` or `.mp3` format, but `.wav` files are also supported.
 
 ## Example Output
 
