@@ -64,15 +64,12 @@ fn test_evolve_cpu_state_basics() {
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
     }
-
-    // Add assertions as needed to verify the state transitions and behavior
-    assert_eq!(state, CpuState::RisingEdge);
 }
 
 /// Stay longer in the OverThreshold and BelowThreshold states.
 #[test]
 fn test_evolve_cpu_state_longer_stay() {
-    let usage_pattern = vec![5.0, 25.0, 30.0, 35.0, 15.0, 10.0, 5.0, 8.0, 25.0, 30.0];
+    let usage_pattern = vec![5.0, 25.0, 30.0, 35.0, 15.0, 10.0, 5.0, 8.0, 25.0, 30.0, 35.0];
     let mut mock_monitor = MockCpuMonitor::new(usage_pattern);
 
     let state_pattern = vec![
@@ -85,6 +82,7 @@ fn test_evolve_cpu_state_longer_stay() {
         CpuState::BelowThreshold,
         CpuState::BelowThreshold,
         CpuState::RisingEdge,
+        CpuState::OverThreshold,
         CpuState::OverThreshold,
     ];
 
@@ -111,7 +109,4 @@ fn test_evolve_cpu_state_longer_stay() {
         state = next_state;
         assert_eq!(next_state, state_pattern[i]);
     }
-
-    // Add assertions as needed to verify the state transitions and behavior
-    assert_eq!(state, CpuState::RisingEdge);
 }
