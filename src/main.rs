@@ -65,6 +65,7 @@ fn main() {
 }
 
 fn monitor_cpu<T: CpuMonitor>(sys: &mut T, threshold: f32, alert_sound_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Result<(), rodio::decoder::DecoderError> {
+    log(&format!("Playing alert sound once on startup."));
     play_sound(alert_sound_path, stream_handle)?;
 
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
