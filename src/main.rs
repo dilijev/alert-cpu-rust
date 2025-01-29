@@ -8,7 +8,7 @@ use chrono;
 use sysinfo::System;
 use rodio::{Decoder, OutputStream, Sink};
 
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings, CpuMonitorOutput};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -75,12 +75,12 @@ fn monitor_cpu<T: CpuMonitor>(sys: &mut T, settings: &Settings, interval: f64, a
         // Sleep for 1 interval before doing anything.
         sleep(Duration::from_secs_f64(interval));
 
-        let (next_state, play_alert, cpu_usage, display_log) =
-            evolve_cpu_state(
-                sys,
-                state,
-                settings,
-                &mut args);
+        let CpuMonitorOutput {
+            next_state,
+            play_alert,
+            cpu_usage,
+            display_log,
+        } = evolve_cpu_state(sys, state, settings, &mut args);
         state = next_state;
 
         // Debug the state evolution

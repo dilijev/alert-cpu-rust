@@ -1,4 +1,4 @@
-use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings};
+use alert_cpu::{CpuMonitor, evolve_cpu_state, CpuMonitorState, CpuMonitorArgs, Settings, CpuMonitorOutput};
 
 struct MockCpuMonitor {
     usage_pattern: Vec<f32>,
@@ -57,12 +57,12 @@ fn test_evolve_cpu_state_basics() {
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
-        let (next_state, _play_alert, cpu_usage, _display_log) =
-            evolve_cpu_state(
-                &mut mock_monitor,
-                state,
-                &settings,
-                &mut args);
+        let CpuMonitorOutput {
+            next_state,
+            play_alert: _,
+            cpu_usage,
+            display_log: _,
+        } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
 
@@ -107,12 +107,12 @@ fn test_evolve_cpu_state_longer_stay() {
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
-        let (next_state, _play_alert, cpu_usage, _display_log) =
-            evolve_cpu_state(
-                &mut mock_monitor,
-                state,
-                &settings,
-                &mut args);
+        let CpuMonitorOutput {
+            next_state,
+            play_alert: _,
+            cpu_usage,
+            display_log: _,
+        } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2})", state, cpu_usage, next_state, args.above_threshold_count, args.below_threshold_count, args.alert_repeat_count);
 
@@ -155,12 +155,12 @@ fn test_alerts_played_for_5_intervals() {
     println!("State: {:?}", state);
 
     for i in 0..mock_monitor.usage_pattern.len() {
-        let (next_state, play_alert, cpu_usage, _display_log) =
-            evolve_cpu_state(
-                &mut mock_monitor,
-                state,
-                &settings,
-                &mut args);
+        let CpuMonitorOutput {
+            next_state,
+            play_alert,
+            cpu_usage,
+            display_log: _,
+        } = evolve_cpu_state(&mut mock_monitor, state, &settings, &mut args);
 
         println!("{:?} \t -> {:2} -> \t {:?} \t  (^{:2} _{:2} #{:2}){}",
             state,

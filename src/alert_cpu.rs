@@ -32,14 +32,21 @@ pub struct CpuMonitorArgs {
     pub alert_repeat_count: i32,
 }
 
+pub struct CpuMonitorOutput {
+    pub next_state: CpuMonitorState,
+    pub play_alert: bool,
+    pub cpu_usage: f32,
+    pub display_log: bool,
+}
+
 pub fn evolve_cpu_state<T: CpuMonitor>(
     sys: &mut T,
     current_state: CpuMonitorState,
     settings: &Settings,
     args: &mut CpuMonitorArgs,
-) -> (CpuMonitorState, bool, f32, bool) {
+) -> CpuMonitorOutput {
     let cpu_usage = sys.get_cpu_usage();
-    let next_state;
+    let mut next_state = current_state;
     let mut play_alert = false;
     let mut display_log = false;
 
@@ -123,5 +130,10 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
         }
     }
 
-    (next_state, play_alert, cpu_usage, display_log)
+    CpuMonitorOutput {
+        next_state,
+        play_alert,
+        cpu_usage,
+        display_log,
+    }
 }
