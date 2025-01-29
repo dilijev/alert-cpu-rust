@@ -133,9 +133,9 @@ fn log(message: &str) {
 }
 
 fn log_above_threshold(cpu_usage: f32) {
-    log(&format!("Current CPU Usage: {}% (above threshold)", cpu_usage));
+    log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
 }
 
 fn log_below_threshold(cpu_usage: f32) {
-    log(&format!("Current CPU Usage: {}%", cpu_usage));
+    log(&format!("Current CPU Usage: {:.2}%", cpu_usage));
 }
