@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::File;
 use std::io::BufReader;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::thread::sleep;
 
 use sysinfo::{System, CpuRefreshKind};
@@ -13,13 +13,13 @@ fn main() {
     let threshold: f32 = args.get(1)
         .and_then(|s| s.parse().ok())
         .unwrap_or(20.0);
-    println!("CPU Threshold: {}%", threshold);
+    log(&format!("CPU Threshold: {}%", threshold));
 
     // Path to the alert sound file
     let alert_sound_path: &str = args.get(2)
         .and_then(|s| Some(s.as_str()))
         .unwrap_or("alert.wav");
-    println!("Alert sound path: \"{}\"", alert_sound_path);
+    log(&format!("Alert sound path: \"{}\"", alert_sound_path));
 
     // Initialize the system information struct
     let mut sys = System::new_all();
@@ -28,13 +28,13 @@ fn main() {
     let (_stream, stream_handle) = match OutputStream::try_default() {
         Ok(stream) => stream,
         Err(e) => {
-            eprintln!("Error initializing audio output stream: {}", e);
+            log(&format!("Error initializing audio output stream: {}", e));
             return;
         }
     };
 
-    println!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold);
-    println!("Press Ctrl+C to exit.");
+    log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
+    log("Press Ctrl+C to exit.");
 
     loop {
         // Refresh CPU data
@@ -44,19 +44,19 @@ fn main() {
         let cpu_usage = sys.global_cpu_usage();
 
         if cpu_usage < threshold {
-            println!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage);
+            log(&format!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage));
 
-            println!("CPU usage below threshold! Playing alert sound.");
+            log("CPU usage below threshold! Playing alert sound.");
 
             // Play the alert sound
             if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
-                eprintln!("Error playing sound: {}", e);
+                log(&format!("Error playing sound: {}", e));
             }
 
             // Optional: Wait until CPU usage rises above the threshold to avoid repeated alerts
             wait_until_above_threshold(&mut sys, threshold);
         } else {
-            println!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage);
+            log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
         }
 
         // Wait for a specified interval before checking again (e.g., 1 second)
@@ -93,11 +93,18 @@ fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
         sys.refresh_cpu_specifics(CpuRefreshKind::everything());
         let cpu_usage = sys.global_cpu_usage();
         if cpu_usage >= threshold {
-            println!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage);
-            println!("CPU usage has risen above the threshold.");
+            log(&format!("Current CPU Usage: {:.2}% (above threshold)", cpu_usage));
+            log("CPU usage has risen above the threshold.");
             break;
         } else {
-            println!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage);
+            log(&format!("Current CPU Usage: {:.2}% (below threshold)", cpu_usage));
         }
     }
+}
+
+/// Logs a message with the current datetime in ISO-8601 format.
+fn log(message: &str) {
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let datetime = chrono::NaiveDateTime::from_timestamp(now.as_secs() as i64, now.subsec_nanos());
+    println!("[{}] {}", datetime.format("%Y-%m-%d %H:%M:%S"), message);
 }
