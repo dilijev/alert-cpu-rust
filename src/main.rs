@@ -1,3 +1,4 @@
+use std::env;
 use std::fs::File;
 use std::io::BufReader;
 use std::time::Duration;
@@ -7,8 +8,11 @@ use sysinfo::{System, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
 fn main() {
-    // Define the CPU usage threshold (e.g., 10%)
-    let threshold = 10.0;
+    // Get the CPU usage threshold from command line arguments or use default (20%)
+    let args: Vec<String> = env::args().collect();
+    let threshold: f32 = args.get(1)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(20.0);
 
     // Path to the alert sound file
     let alert_sound_path = "alert.wav";
