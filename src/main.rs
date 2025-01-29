@@ -8,6 +8,14 @@ use chrono;
 use sysinfo::{System, CpuRefreshKind};
 use rodio::{Decoder, OutputStream, Sink};
 
+enum CpuState {
+    Initial,
+    RisingEdge,
+    OverThreshold,
+    FallingEdge,
+    BelowThreshold,
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -40,7 +48,9 @@ fn main() {
     log(&format!("Monitoring CPU usage. Alert will sound if usage drops below {}%.", threshold));
     log("Press Ctrl+C to exit.");
 
-    initial_cpu_status_check(&mut sys, threshold);
+    let mut state = CpuState::Initial;
+    let mut above_threshold_count = 0;
+    let mut below_threshold_count = 0;
 
     loop {
         // Refresh CPU data
@@ -49,31 +59,74 @@ fn main() {
         // Get the average CPU usage across all cores
         let cpu_usage = sys.global_cpu_usage();
 
-        if cpu_usage < threshold {
-            log_below_threshold(cpu_usage);
-
-            log("CPU usage below threshold! Playing alert sound.");
-
-            // Play the alert sound up to 5 times, interrupt if CPU goes above threshold
-            for _ in 0..5 {
-                if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
-                    log(&format!("Error playing sound: {}", e));
-                }
-                sleep(Duration::from_secs(1));
-
-                // Refresh CPU data and check if it goes above the threshold
-                sys.refresh_cpu_specifics(CpuRefreshKind::everything());
-                let cpu_usage = sys.global_cpu_usage();
-                if log_as_per_threshold(cpu_usage, threshold) {
-                    break;
+        state = match state {
+            CpuState::Initial => {
+                log_as_per_threshold(cpu_usage, threshold);
+                if cpu_usage >= threshold {
+                    CpuState::RisingEdge
+                } else {
+                    CpuState::Initial
                 }
             }
+            CpuState::RisingEdge => {
+                if cpu_usage >= threshold {
+                    above_threshold_count += 1;
+                    if above_threshold_count >= 1 {
+                        log("CPU usage has risen above the threshold.");
+                        CpuState::OverThreshold
+                    } else {
+                        CpuState::RisingEdge
+                    }
+                } else {
+                    above_threshold_count = 0;
+                    CpuState::Initial
+                }
+            }
+            CpuState::OverThreshold => {
+                if cpu_usage < threshold {
+                    below_threshold_count += 1;
+                    if below_threshold_count >= 2 {
+                        log("CPU usage has fallen below the threshold.");
+                        CpuState::FallingEdge
+                    } else {
+                        CpuState::OverThreshold
+                    }
+                } else {
+                    below_threshold_count = 0;
+                    CpuState::OverThreshold
+                }
+            }
+            CpuState::FallingEdge => {
+                log_below_threshold(cpu_usage);
+                log("CPU usage below threshold! Playing alert sound.");
 
-            // Optional: Wait until CPU usage rises above the threshold to avoid repeated alerts
-            wait_until_above_threshold(&mut sys, threshold);
-        } else {
-            log_above_threshold(cpu_usage);
-        }
+                // Play the alert sound up to 5 times, interrupt if CPU goes above threshold
+                for _ in 0..5 {
+                    if let Err(e) = play_sound(&alert_sound_path, &stream_handle) {
+                        log(&format!("Error playing sound: {}", e));
+                    }
+                    sleep(Duration::from_secs(1));
+
+                    // Refresh CPU data and check if it goes above the threshold
+                    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
+                    let cpu_usage = sys.global_cpu_usage();
+                    if cpu_usage >= threshold {
+                        log_above_threshold(cpu_usage);
+                        return;
+                    } else {
+                        log_below_threshold(cpu_usage);
+                    }
+                }
+                CpuState::BelowThreshold
+            }
+            CpuState::BelowThreshold => {
+                if cpu_usage >= threshold {
+                    CpuState::RisingEdge
+                } else {
+                    CpuState::BelowThreshold
+                }
+            }
+        };
 
         // Wait for a specified interval before checking again (e.g., 1 second)
         sleep(Duration::from_secs(1));
@@ -99,43 +152,6 @@ fn play_sound(file_path: &str, stream_handle: &rodio::OutputStreamHandle) -> Res
     sink.detach();
 
     Ok(())
-}
-
-/// Initial CPU status check. Don't alert right away.
-fn initial_cpu_status_check(sys: &mut System, threshold: f32) {
-    // Wait for 1 second for CPU to settle before initial check
-    // Then do nothing until the first time we're above the threshold.
-    sleep(Duration::from_secs(1));
-    sys.refresh_cpu_specifics(CpuRefreshKind::everything());
-
-    let cpu_usage = sys.global_cpu_usage();
-    log_as_per_threshold(cpu_usage, threshold);
-
-    wait_until_above_threshold(sys, threshold);
-}
-
-/// Waits until the CPU usage rises above the specified threshold.
-fn wait_until_above_threshold(sys: &mut System, threshold: f32) {
-    let mut above_threshold_count = 0;
-    loop {
-        // Delay longer when below threshold to smooth out system activity.
-        sleep(Duration::from_secs(10));
-        sys.refresh_cpu_specifics(CpuRefreshKind::everything());
-        let cpu_usage = sys.global_cpu_usage();
-        if cpu_usage >= threshold {
-            above_threshold_count += 1;
-            log_above_threshold(cpu_usage);
-            if above_threshold_count >= 2 {
-                // No need to reset `above_threshold_count` because we will
-                // return before reading that value again.
-                log("CPU usage has risen above the threshold.");
-                break;
-            }
-        } else {
-            above_threshold_count = 0;
-            log_below_threshold(cpu_usage);
-        }
-    }
 }
 
 /// Logs a message with the current datetime in ISO-8601 format.
