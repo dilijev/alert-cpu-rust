@@ -13,9 +13,13 @@ fn main() {
     let threshold: f32 = args.get(1)
         .and_then(|s| s.parse().ok())
         .unwrap_or(20.0);
+    println!("CPU Threshold: {}%", threshold);
 
     // Path to the alert sound file
-    let alert_sound_path = "alert.wav";
+    let alert_sound_path: &str = args.get(2)
+        .and_then(|s| Some(s.as_str()))
+        .unwrap_or("alert.wav");
+    println!("Alert sound path: {}%", alert_sound_path);
 
     // Initialize the system information struct
     let mut sys = System::new_all();
