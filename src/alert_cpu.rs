@@ -49,7 +49,7 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
               }
           } else {
               *above_threshold_count = 0;
-              next_state = CpuState::FallingEdge;
+              next_state = CpuState::BelowThreshold;
           }
           display_log = true;
       }
