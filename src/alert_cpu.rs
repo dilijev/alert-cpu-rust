@@ -38,9 +38,14 @@ pub fn evolve_cpu_state<T: CpuMonitor>(
 
     // Make these updates regardless of current state
     if cpu_usage > threshold {
+        // above
         *below_threshold_count = 0;
         *above_threshold_count += 1;
     } else {
+        // below
+        if *below_threshold_count == 0 {
+            *alert_repeat_count = 0;
+        }
         *above_threshold_count = 0;
         *below_threshold_count += 1;
     }
