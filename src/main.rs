@@ -64,11 +64,8 @@ fn main() {
                 // Refresh CPU data and check if it goes above the threshold
                 sys.refresh_cpu_specifics(CpuRefreshKind::everything());
                 let cpu_usage = sys.global_cpu_usage();
-                if cpu_usage >= threshold {
-                    log_above_threshold(cpu_usage);
+                if log_as_per_threshold(cpu_usage, threshold) {
                     break;
-                } else {
-                    log_below_threshold(cpu_usage);
                 }
             }
 
